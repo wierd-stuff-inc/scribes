@@ -114,8 +114,8 @@ def register_plugin(directory: str, pluginname: str):
     print(f"Registering plugin {pluginname}")
     if not os.path.exists(f"{directory}/{pluginname}/main.py"):
         raise Exception("No main.py entry was found in plugin.")
-    directory = directory.replace("/", ".")
-    mark.registerExtensions([f"{directory}.{pluginname}.main:Plugin"], {})
+    import_path = directory.replace("/", ".")
+    mark.registerExtensions([f"{import_path}.{pluginname}.main:Plugin"], {})
     script_dir = f"{directory}/{pluginname}/scripts"
     if os.path.exists(script_dir):
         recursive_copy(script_dir, f"generated/js/{pluginname}")

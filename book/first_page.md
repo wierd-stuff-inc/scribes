@@ -1,25 +1,15 @@
-@import lineplugin
-# Header
+@import draw_func
 
-@line test
+# Simple functions
 
+\( f(x) = \text{sin}(x) \)
 
-\(a = 2\)
+@draw_func 500 200 Math.sin(x)
 
-$$ \int_a^b{x^2}\label{integral}\tag{1} $$
+\( f(x) = \text{random} \)
 
-\(\sum_{k=1}^{\infty}{k}=-\dfrac{1}{12}\)
+@draw_func 500 200 Math.random()
 
-(\(\ref{integral}\))
-Text text text.
+\( f(x) = sinh(x) \)
 
-List of items:
-
-1. Item1;
-2. Item2;
-3. Item3:
-  1.  SubItem1;
-  2.  SubItem2.
-4. Item4.
-
-
+@draw_func 500 200 Math.sinh(x)
