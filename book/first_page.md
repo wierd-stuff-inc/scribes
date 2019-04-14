@@ -1,15 +1,16 @@
 @import lineplugin
-
 # Header
 
-@line first
+@line test
+
 
 \(a = 2\)
 
-$$ \int_a^b{x^2} $$
+$$ \int_a^b{x^2}\label{integral}\tag{1} $$
 
 \(\sum_{k=1}^{\infty}{k}=-\dfrac{1}{12}\)
 
+(\(\ref{integral}\))
 Text text text.
 
 List of items:
