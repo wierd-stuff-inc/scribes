@@ -13,10 +13,12 @@ import tqdm
 from flask import Flask, send_from_directory
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+from typing import List
 
 mark = markdown.Markdown(extensions=['mdx_math'])
 
 scripts = []
+styles = []
 
 
 def recursive_copy(src, dst, rm=True):
@@ -29,8 +31,8 @@ def recursive_copy(src, dst, rm=True):
     try:
         if os.path.exists(dst) and rm:
             shutil.rmtree(dst)
-        print(f"Copying {src}")
         shutil.copytree(src, dst)
+        print(f"[  OK  ] Copying {src}")
     except FileExistsError:
         if rm:
             raise
@@ -97,7 +99,7 @@ def load_plugin_from_github(plugin_link):
         shutil.rmtree("tmp")
         raise
     plugin_zip = zipfile.ZipFile("tmp/plugin.zip")
-    print("Plugin downloaded.")
+    print("[  OK  ] Download Plugin.")
     if local_path == "":
         plugin_zip.extractall(f"plugins/loaded/{url}")
         shutil.rmtree("tmp")
@@ -110,18 +112,29 @@ def load_plugin_from_github(plugin_link):
     return load_location
 
 
+def copy_and_link(src: str, pluginname: str, dst: str, links: List[str]):
+    if os.path.exists(src):
+        recursive_copy(src, f"generated/{dst}/{pluginname}")
+        for element in os.listdir(src):
+            if element not in links:
+                links.append(f"/{dst}/{pluginname}/{element}")
+                print(f"[  OK  ] Linking {pluginname}/{element}")
+
+
 def register_plugin(directory: str, pluginname: str):
-    print(f"Registering plugin {pluginname}")
     if not os.path.exists(f"{directory}/{pluginname}/main.py"):
         raise Exception("No main.py entry was found in plugin.")
     import_path = directory.replace("/", ".")
     mark.registerExtensions([f"{import_path}.{pluginname}.main:Plugin"], {})
+    global scripts
     script_dir = f"{directory}/{pluginname}/scripts"
-    if os.path.exists(script_dir):
-        recursive_copy(script_dir, f"generated/js/{pluginname}")
-        for script in os.listdir(script_dir):
-            if f"/js/{pluginname}/{script}" not in scripts:
-                scripts.append(f"/js/{pluginname}/{script}")
+    copy_and_link(script_dir, pluginname, "js", scripts)
+    print("[  OK  ] Linking scripts")
+
+    global styles
+    style_dir = f"{directory}/{pluginname}/styles"
+    copy_and_link(style_dir, pluginname, "css", styles)
+    print("[  OK  ] Linking styles")
     print(f"[  OK  ] Registring {pluginname}")
 
 
@@ -163,6 +176,7 @@ def generate_page(filename: str):
     :type filename: str
     """
     global scripts
+    global styles
     print('{:-^100}'.format(f'Generating {filename}'))
     with open(filename, 'r') as page:
         text = page.read()
@@ -174,7 +188,10 @@ def generate_page(filename: str):
         with open(f"generated/pages/{name}.html", 'w') as out:
             template = jinja2.Template(open("templates/page.html").read())
             rendered = template.render(
-                page_title=name, content=content, scripts=scripts)
+                page_title=name,
+                content=content,
+                scripts=scripts,
+                styles=styles)
             out.write(rendered)
         print(f"[  OK  ] Generating page for {name}")
 
@@ -207,6 +224,11 @@ app = init_app()
 @app.route('/js/<path:path>')
 def find_js(path):
     return send_from_directory(f"generated/js", path)
+
+
+@app.route('/css/<path:path>')
+def find_css(path):
+    return send_from_directory(f"generated/css", path)
 
 
 @app.route('/page/<path:path>')

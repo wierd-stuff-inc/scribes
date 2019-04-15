@@ -1,4 +1,5 @@
 @import draw_func
+@import bulma_style
 
 # Simple functions
 
