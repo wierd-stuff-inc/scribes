@@ -147,6 +147,8 @@ def load_plugins(md: str):
     """
     global scripts
     scripts = []
+    global styles
+    styles = []
     new_lines = []
     for line in md.splitlines():
         if line.strip().startswith("@import"):
