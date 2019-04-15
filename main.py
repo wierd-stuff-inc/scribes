@@ -15,7 +15,7 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 from typing import List
 
-mark = markdown.Markdown(extensions=['mdx_math'])
+mark = markdown.Markdown(extensions=['mdx_math', 'toc', 'attr_list'])
 
 scripts = []
 styles = []

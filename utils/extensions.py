@@ -4,6 +4,22 @@ import re
 import copy
 
 
+def replace_params(match, attributes):
+    new_attrs = copy.deepcopy(attributes)
+    for (k, v) in new_attrs.items():
+        new_attrs[k] = replace_params_in_string(match, v)
+    return new_attrs
+
+
+def replace_params_in_string(match, string):
+    param = re.compile(r'[.*\$(\d+).*]+')
+    result = copy.copy(string)
+    for i in set(param.findall(string)):
+        gr = int(i[1:])
+        result = result.replace(i, match.group(gr))
+    return result
+
+
 class AttrTagPattern(Pattern):
     """
     Return element of type `tag` with a text attribute of group(3)
@@ -19,12 +35,7 @@ class AttrTagPattern(Pattern):
 
     def handleMatch(self, m):
         el = markdown.util.etree.Element(self.tag)
-        param = re.compile(r".*\$(\d+).*")
-        new_attrs = copy.deepcopy(self.attrs)
-        for (k, v) in new_attrs.items():
-            if param.match(v):
-                num = param.match(v).group(1)
-                new_attrs[k] = v.replace(f"${num}", m.group(int(num)))
+        new_attrs = replace_params(m, self.attrs)
         el.text = self.text
         for (key, val) in new_attrs.items():
             el.set(key, val)
